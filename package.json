@@ -1,22 +1,71 @@
 {
-  "name": "playus-devkit-games",
+  "name": "@playus/games-sdk",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Public Playus game developer kit with a local tester and example games.",
+  "description": "Playus games SDK with runtime bridge, host simulator, and example games.",
+  "files": [
+    "dist/sdk",
+    "src/playus/*.css",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/sdk/index.d.ts",
+      "import": "./dist/sdk/index.js"
+    },
+    "./native-bridge": {
+      "types": "./dist/sdk/native-bridge.d.ts",
+      "import": "./dist/sdk/native-bridge.js"
+    },
+    "./score": {
+      "types": "./dist/sdk/score.d.ts",
+      "import": "./dist/sdk/score.js"
+    },
+    "./phaser": {
+      "types": "./dist/sdk/phaser/index.d.ts",
+      "import": "./dist/sdk/phaser.js"
+    },
+    "./babylon": {
+      "types": "./dist/sdk/babylon/index.d.ts",
+      "import": "./dist/sdk/babylon.js"
+    },
+    "./three": {
+      "types": "./dist/sdk/three/index.d.ts",
+      "import": "./dist/sdk/three.js"
+    },
+    "./overlay": {
+      "types": "./dist/sdk/overlay/index.d.ts",
+      "import": "./dist/sdk/overlay.js"
+    },
+    "./styles.css": "./src/playus/styles.css",
+    "./fonts.css": "./src/playus/fonts.css",
+    "./global.css": "./src/playus/global.css"
+  },
   "scripts": {
     "dev": "vite --host --port 8091",
     "dev:starter": "vite games/starter-game --config vite.config.ts --host --port 8090 --strictPort",
     "dev:phaser": "vite games/phaser-example --config vite.config.ts --host --port 8090 --strictPort",
     "dev:babylon": "vite games/babylon-example --config vite.config.ts --host --port 8090 --strictPort",
-    "build": "tsc --noEmit && vite build --outDir dist/tester && vite build games/starter-game --config vite.config.ts --outDir ../../dist/games/starter-game --emptyOutDir false && vite build games/phaser-example --config vite.config.ts --outDir ../../dist/games/phaser-example --emptyOutDir false && vite build games/babylon-example --config vite.config.ts --outDir ../../dist/games/babylon-example --emptyOutDir false",
+    "build:sdk": "vite build --config vite.sdk.config.ts && tsc -p tsconfig.sdk.json",
+    "build": "tsc --noEmit && npm run build:sdk && vite build --outDir dist/tester && vite build games/starter-game --config vite.config.ts --outDir ../../dist/games/starter-game --emptyOutDir false && vite build games/phaser-example --config vite.config.ts --outDir ../../dist/games/phaser-example --emptyOutDir false && vite build games/babylon-example --config vite.config.ts --outDir ../../dist/games/babylon-example --emptyOutDir false",
     "preview": "vite preview --host --port 4173"
   },
-  "dependencies": {
+  "peerDependencies": {
     "@babylonjs/core": "^8.31.2",
     "phaser": "^3.80.0"
   },
+  "peerDependenciesMeta": {
+    "@babylonjs/core": {
+      "optional": true
+    },
+    "phaser": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@babylonjs/core": "^8.31.2",
+    "phaser": "^3.80.0",
     "typescript": "^5.9.2",
     "vite": "^8.1.0"
   }

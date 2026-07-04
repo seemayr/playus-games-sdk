@@ -1,36 +1,37 @@
-# Contributing A Game
+# Contributing Or Delivering A Game
 
-Thanks for building a Playus game.
+Playus can review either a source-code PR in this repo or a pre-built static game bundle. Partner teams usually deliver only the built bundle.
 
-## How To Submit
+## Preferred Partner Flow
 
-1. Create a new folder under `games/<your-game-id>`.
-2. Start from `games/starter-game` or one of the examples.
-3. Keep your game short, portrait-first, and easy to understand.
-4. Bundle required assets locally in your game folder.
-5. Test it in the local tester.
-6. If you add a new framework or runtime, explain why it is a good mobile WebView fit.
-7. Open a PR with only your game and any docs needed to understand it.
+1. Build your game in your own repository.
+2. Install and use `@playus/games-sdk`.
+3. Test the game in the local Playus host simulator.
+4. Build a static production bundle.
+5. Send Playus the bundle plus the required game metadata.
+
+## Source PR Flow
+
+If you are contributing source directly, create a folder under `games/<your-game-id>` and start from one of the examples.
 
 ## What We Review
 
-- The game sends `ready`, `started`, `score`, and `finished` at the right time.
+- The game uses the real Playus SDK bridge.
+- `ready`, `hostReadyAck`, `started`, `score`, and `finished` happen in the right order.
 - Live score updates are meaningful for a leaderboard and are not sent every frame.
 - The final score is a single exact number in the real score unit.
-- The game ends clearly.
-- Required assets are local and load before `ready()`.
-- Gameplay randomness is seeded when it affects fairness.
+- Required assets are local or bundled and load before `ready()`.
+- In-game text uses `lang` from the URL hash.
+- Gameplay-affecting randomness is seeded when fairness depends on it.
 - The framework/runtime choice is lean enough for mobile WebViews.
-- The code is simple enough for Playus to adapt internally.
 
 ## What Not To Include
 
-- Login, accounts, networking, analytics, ads, or payments.
-- A custom leaderboard or result/upload screen.
-- External runtime data fetches required for the game to work.
+- Login, accounts, analytics, ads, payments, or backend calls required for gameplay.
+- A custom leaderboard, upload flow, or final result screen.
+- Required remote runtime data fetches.
 - Heavy engine exports unless Playus agreed to the tradeoff first.
-- Localization systems, language switchers, or host mute controls.
-- Obfuscated or minified source code.
-- Internal Playus host assumptions.
+- Obfuscated or minified source code when submitting source.
+- Signing keys, deployment credentials, or Playus backend assumptions.
 
-Playus may make integration changes after accepting a game.
+Playus may still request bundle, performance, metadata, or scoring changes before accepting a game.

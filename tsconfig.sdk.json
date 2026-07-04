@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "outDir": "dist/sdk",
+    "rootDir": "src/playus",
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src/playus"]
+}

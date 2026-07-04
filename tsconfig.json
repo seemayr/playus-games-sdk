@@ -16,6 +16,8 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
+      "@playus/games-sdk": ["src/playus/index.ts"],
+      "@playus/games-sdk/*": ["src/playus/*"],
       "@playus/*": ["src/playus/*"],
       "@playus": ["src/playus/index.ts"]
     }

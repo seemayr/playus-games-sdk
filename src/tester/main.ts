@@ -1,5 +1,5 @@
 import './styles.css';
-import { BridgeEmulator, type TesterEvent } from './bridge-emulator';
+import { BridgeEmulator, type HostReadyPayload, type TesterEvent } from './bridge-emulator';
 
 type Example = {
   label: string;
@@ -47,8 +47,31 @@ app.innerHTML = `
         </div>
       </label>
 
+      <label class="field">
+        <span>Language</span>
+        <select id="languageSelect">
+          <option value="en">EN</option>
+          <option value="de">DE</option>
+          <option value="fr">FR</option>
+          <option value="es">ES</option>
+          <option value="it">IT</option>
+        </select>
+      </label>
+
+      <div class="toggle-list">
+        <label class="toggle-field">
+          <span>Debug mode</span>
+          <input id="debugInput" type="checkbox" />
+        </label>
+        <label class="toggle-field">
+          <span>Mute game sound</span>
+          <input id="muteInput" type="checkbox" />
+        </label>
+      </div>
+
       <div class="status-grid">
         <div class="status-card" id="readyStatus">ready</div>
+        <div class="status-card" id="hostReadyStatus">host ack</div>
         <div class="status-card" id="startedStatus">started</div>
         <div class="status-card" id="finishedStatus">finished</div>
         <div class="status-card" id="scoreStatus">score: -</div>
@@ -58,6 +81,7 @@ app.innerHTML = `
         <h2>Expected flow</h2>
         <ol>
           <li><code>ready()</code> after required assets are loaded.</li>
+          <li>Host calls <code>gameAPI.hostReady()</code> and receives <code>hostReadyAck</code>.</li>
           <li><code>started()</code> when the run actually begins.</li>
           <li><code>score()</code> on meaningful live leaderboard changes.</li>
           <li><code>finished(score)</code> exactly once at the end.</li>
@@ -87,17 +111,23 @@ app.innerHTML = `
 const exampleSelect = getElement<HTMLSelectElement>('exampleSelect');
 const gameUrlInput = getElement<HTMLInputElement>('gameUrlInput');
 const groupInput = getElement<HTMLInputElement>('groupInput');
+const languageSelect = getElement<HTMLSelectElement>('languageSelect');
+const debugInput = getElement<HTMLInputElement>('debugInput');
+const muteInput = getElement<HTMLInputElement>('muteInput');
 const seedButton = getElement<HTMLButtonElement>('seedButton');
 const reloadButton = getElement<HTMLButtonElement>('reloadButton');
 const clearButton = getElement<HTMLButtonElement>('clearButton');
 const gameFrame = getElement<HTMLIFrameElement>('gameFrame');
 const eventList = getElement<HTMLDivElement>('eventList');
 const readyStatus = getElement<HTMLDivElement>('readyStatus');
+const hostReadyStatus = getElement<HTMLDivElement>('hostReadyStatus');
 const startedStatus = getElement<HTMLDivElement>('startedStatus');
 const finishedStatus = getElement<HTMLDivElement>('finishedStatus');
 const scoreStatus = getElement<HTMLDivElement>('scoreStatus');
 
-const bridge = new BridgeEmulator();
+const bridge = new BridgeEmulator({
+  sendHostReady,
+});
 let reloadCount = 0;
 
 for (const example of examples) {
@@ -118,6 +148,12 @@ exampleSelect.addEventListener('change', () => {
 for (const element of [gameUrlInput, groupInput]) {
   element.addEventListener('change', reloadGame);
 }
+
+for (const element of [languageSelect, debugInput]) {
+  element.addEventListener('change', reloadGame);
+}
+
+muteInput.addEventListener('change', applyMutedState);
 
 seedButton.addEventListener('click', () => {
   groupInput.value = createSeed();
@@ -144,20 +180,87 @@ function reloadGame() {
 
   params.set('groupgame', groupInput.value.trim() || createSeed());
   params.set('playcontext', 'dev');
+  params.set('lang', languageSelect.value);
+  if (debugInput.checked) params.set('d', '1');
 
   url.searchParams.set('playusDevkitReload', String(reloadCount));
   url.hash = params.toString();
   gameFrame.src = url.toString();
 }
 
+function sendHostReady(payload: HostReadyPayload) {
+  try {
+    const gameWindow = gameFrame.contentWindow as (Window & {
+      gameAPI?: {
+        hostReady?: (payload: HostReadyPayload) => string | { success?: boolean; error?: string } | undefined;
+      };
+    }) | null;
+    const result = gameWindow?.gameAPI?.hostReady?.(payload);
+    const parsedResult = parseHostReadyResult(result);
+
+    applyMutedState();
+
+    return parsedResult;
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof DOMException
+        ? 'host_ready_cross_origin_blocked'
+        : 'host_ready_exception',
+    };
+  }
+}
+
+function parseHostReadyResult(result: unknown) {
+  if (typeof result === 'string') {
+    try {
+      const parsed = JSON.parse(result) as { success?: boolean; error?: string };
+      return {
+        success: parsed.success === true,
+        error: parsed.error,
+      };
+    } catch {
+      return {
+        success: false,
+        error: 'invalid_host_ready_result',
+      };
+    }
+  }
+
+  if (result && typeof result === 'object') {
+    const parsed = result as { success?: boolean; error?: string };
+    return {
+      success: parsed.success !== false,
+      error: parsed.error,
+    };
+  }
+
+  return { success: true };
+}
+
+function applyMutedState() {
+  try {
+    const gameWindow = gameFrame.contentWindow as (Window & {
+      gameAPI?: {
+        setMuted?: (muted: boolean) => void;
+      };
+    }) | null;
+    gameWindow?.gameAPI?.setMuted?.(muteInput.checked);
+  } catch {
+    // Cross-origin game URLs can still be tested for outgoing events.
+  }
+}
+
 function renderState() {
   const state = bridge.getState();
 
   readyStatus.className = `status-card ${state.hasReady ? 'ok' : ''}`;
+  hostReadyStatus.className = `status-card ${state.hasHostReadyAck ? 'ok' : ''}`;
   startedStatus.className = `status-card ${state.hasStarted ? 'ok' : ''}`;
   finishedStatus.className = `status-card ${state.hasFinished ? 'ok' : ''}`;
 
   readyStatus.textContent = state.hasReady ? 'ready ✓' : 'ready';
+  hostReadyStatus.textContent = state.hasHostReadyAck ? 'host ack ✓' : 'host ack';
   startedStatus.textContent = state.hasStarted ? 'started ✓' : 'started';
   finishedStatus.textContent = state.hasFinished ? 'finished ✓' : 'finished';
   scoreStatus.textContent = `score: ${state.score ?? '-'}`;
@@ -180,7 +283,7 @@ function renderEvents(events: TesterEvent[]) {
         <span class="event-type">${event.type}</span>
         <span class="event-time">${formatTime(event.timestamp)}</span>
       </header>
-      <p class="event-direction">Game → Host</p>
+      <p class="event-direction">${event.direction === 'game-to-host' ? 'Game → Host' : 'Host → Game'}</p>
       ${event.warning ? `<p class="event-warning">${event.warning}</p>` : ''}
       <pre>${escapeHtml(JSON.stringify(event.payload, null, 2))}</pre>
     `;

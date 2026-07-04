@@ -5,46 +5,46 @@ import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
-import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import {
   createTapToStartOverlay,
-  playus,
+  nativeBridge,
   sound,
-} from '@playus';
-import '@playus/styles.css';
+} from '@playus/games-sdk';
+import { createCanvas, getClearColor, getEngineOptions } from '@playus/games-sdk/babylon';
+import '@playus/games-sdk/styles.css';
 import './style.css';
 
 const GAME_ID = 'babylon-example';
 const TARGET_SCORE = 5;
 
-playus.configure({ gameId: GAME_ID });
+nativeBridge.configure({ gameId: GAME_ID });
 
 let score = 0;
 let hasStarted = false;
 let hasFinished = false;
 let cube: Mesh;
 
-document.body.innerHTML = `
-  <div class="playus-game-root babylon-game">
-    <canvas id="renderCanvas" aria-label="Babylon Playus example"></canvas>
-    <div class="score" id="score">0</div>
-  </div>
-`;
-
-const canvas = getElement<HTMLCanvasElement>('renderCanvas');
-const scoreElement = getElement<HTMLDivElement>('score');
+const background = { transparent: false, color: '#11141c' } as const;
+const canvas = createCanvas({ background });
+const scoreElement = document.createElement('div');
+scoreElement.className = 'score';
+scoreElement.textContent = '0';
+canvas.parentElement?.appendChild(scoreElement);
 
 try {
-  const engine = new Engine(canvas, true, {
-    antialias: true,
-    stencil: false,
-    preserveDrawingBuffer: false,
-  });
+  const engine = new Engine(canvas, true, getEngineOptions(background));
   const scene = createScene(engine);
 
   createTapToStartOverlay({
-    text: 'Tap to start',
+    text: {
+      en: 'Tap the cube',
+      de: 'Tippe den Würfel',
+      fr: 'Touchez le cube',
+      es: 'Toca el cubo',
+      it: 'Tocca il cubo',
+    },
     mode: 'dismiss-only',
     onStart: startGame,
   });
@@ -60,13 +60,13 @@ try {
 
     if (!hasSentReady && scene.isReady()) {
       hasSentReady = true;
-      playus.game.ready();
+      nativeBridge.game.ready();
     }
   });
 
   window.addEventListener('resize', () => engine.resize());
 } catch (error) {
-  playus.game.error({
+  nativeBridge.game.error({
     code: 'INIT_FAILED',
     message: error instanceof Error ? error.message : String(error),
   });
@@ -74,7 +74,7 @@ try {
 
 function createScene(engine: Engine): Scene {
   const scene = new Scene(engine);
-  scene.clearColor = Color4.FromHexString('#11141cff');
+  scene.clearColor = getClearColor(background);
 
   new ArcRotateCamera(
     'camera',
@@ -105,8 +105,8 @@ function startGame() {
   if (hasStarted || hasFinished) return;
 
   hasStarted = true;
-  playus.game.started();
-  playus.game.score(score);
+  nativeBridge.game.started();
+  nativeBridge.game.score(score);
 }
 
 function hitCube() {
@@ -114,8 +114,8 @@ function hitCube() {
 
   score += 1;
   scoreElement.textContent = String(score);
-  playus.game.score(score);
-  playus.device.haptic('tap');
+  nativeBridge.game.score(score);
+  nativeBridge.device.haptic('tap');
   sound.play('positive-input', { volume: 0.55 });
 
   cube.scaling.setAll(1.08);
@@ -130,13 +130,7 @@ function finishGame() {
   if (hasFinished) return;
 
   hasFinished = true;
-  playus.device.haptic('success');
+  nativeBridge.device.haptic('success');
   sound.play('level-complete', { volume: 0.7 });
-  playus.game.finished(score);
-}
-
-function getElement<T extends HTMLElement>(id: string): T {
-  const element = document.getElementById(id);
-  if (!element) throw new Error(`Missing #${id}.`);
-  return element as T;
+  nativeBridge.game.finished(score);
 }

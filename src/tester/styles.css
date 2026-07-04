@@ -132,6 +132,29 @@ h2 {
   gap: 8px;
 }
 
+.toggle-list {
+  display: grid;
+  gap: 10px;
+  margin: 6px 0 16px;
+}
+
+.toggle-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: #c7c0b5;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.toggle-field input {
+  width: 18px;
+  min-height: 18px;
+  padding: 0;
+  accent-color: #8ed7b5;
+}
+
 input,
 select {
   width: 100%;

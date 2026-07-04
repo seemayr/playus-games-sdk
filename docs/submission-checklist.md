@@ -1,10 +1,11 @@
 # Submission Checklist
 
-Before opening a PR, check:
+Before sending a bundle or opening a source PR, check:
 
-- The game lives in `games/<your-game-id>`.
-- `playus.configure({ gameId })` uses the same id as the folder.
-- `ready()` fires after required assets are loaded.
+- The game uses `@playus/games-sdk`.
+- `nativeBridge.configure({ gameId })` uses the agreed Playus game id.
+- `ready()` fires after required assets for the first playable frame are loaded.
+- The local host simulator receives `hostReadyAck`.
 - `started()` fires when the run really begins.
 - `score()` is sent only on meaningful live leaderboard changes, not every frame.
 - `finished(finalScore)` fires exactly once.
@@ -14,7 +15,16 @@ Before opening a PR, check:
 - The game has a clear end.
 - Required assets are bundled locally.
 - Gameplay-affecting randomness uses seeded random.
+- In-game text and start overlays support `en`, `de`, `fr`, `es`, and `it`.
+- Host mute state is respected through the SDK `sound` manager.
 - The framework/runtime is lean enough for mobile WebViews.
-- The game works in the local tester.
+- The production build works in the local host simulator.
 
-Do not worry about localization, language switching, or final host audio controls. Playus handles those during internal integration.
+Bundle delivery should include:
+
+- static build output with `index.html`
+- game id
+- game name and short description translations
+- score direction and score type notes
+- expected average playtime
+- any framework/runtime notes

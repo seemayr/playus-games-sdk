@@ -15,12 +15,14 @@ const playerUrl = new URL('./assets/player.png', import.meta.url);
 For Phaser, load required images in `preload()`, then call `ready()` from `create()`.
 
 ```ts
+import { nativeBridge } from '@playus/games-sdk';
+
 preload() {
   this.load.image('player', new URL('./assets/player.png', import.meta.url).toString());
 }
 
 create() {
-  playus.game.ready();
+  nativeBridge.game.ready();
 }
 ```
 
@@ -38,7 +40,7 @@ Avoid:
 - large unoptimized 3D exports
 - required network fetches
 - huge texture atlases for tiny games
-- assets copied from internal Playus projects
+- assets copied from Playus internal projects
 
 ## Frameworks
 
@@ -65,7 +67,7 @@ Other possible fits:
 - PlayCanvas Engine when its 3D workflow is a better fit than Babylon.js or Three.js
 - Matter.js or Planck.js when physics is central to the game
 
-If you add a framework that is not already used in this devkit, explain the choice in the PR.
+If you use a framework that is not already common for Playus games, explain the choice when you submit the bundle.
 
 ## Usually Avoid
 
@@ -93,5 +95,6 @@ Keep the first playable frame fast:
 - keep texture sizes, model complexity, particles, shadows, and post-processing modest
 - stop work when the game is finished or not visible
 - test on a real mobile device when possible, especially Android
+- test the production build in the Playus host simulator, not only your framework dev server
 
 If an engine starts more slowly than the game takes to understand, it is probably too heavy.

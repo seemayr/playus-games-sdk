@@ -2,11 +2,11 @@
   <img src="docs/assets/playus-web-preview.jpg" alt="Playus dice logo" width="720" />
 </p>
 
-# Playus Devkit Games
+# Playus Games SDK
 
-Public starter kit for building small Playus-style web games.
+SDK and local host simulator for building Playus-compatible web games.
 
-This repo helps external game developers build and test a game before opening a PR. It is not the internal Playus game runtime. Playus will still review, adapt, and integrate accepted games internally.
+Partners can build games in their own repository and deliver a pre-built static bundle to Playus. The bundle must already use the Playus SDK runtime so it works inside the Playus iOS and Android WebViews without a source-code adaptation step.
 
 ## Quick Start
 
@@ -15,66 +15,86 @@ npm install
 npm run dev
 ```
 
-Open the tester at:
+Open the local host simulator:
 
 ```txt
 http://localhost:8091
 ```
 
-The tester can load the included examples or a game running on another local URL.
+The simulator loads the included examples and validates the real Playus bridge flow, including `ready`, `hostReady`, `hostReadyAck`, live score updates, finish events, language params, debug mode, and host mute callbacks.
 
-## Build A Game
+## SDK Usage
 
-Copy the starter:
+Install the SDK source that Playus provides for your project. The package name is:
 
 ```txt
-games/starter-game -> games/your-game-id
+@playus/games-sdk
 ```
 
-Then update:
-
-- `games/your-game-id/index.html`
-- `games/your-game-id/src/main.ts`
-- `GAME_ID` inside the game
-
-Run an included example:
-
-```sh
-npm run dev:starter
-npm run dev:phaser
-npm run dev:babylon
-```
-
-Most existing Playus games use plain JavaScript/TypeScript, Phaser, or Babylon.js. Other web-first frameworks are welcome when they stay lean and perform well in mobile WebViews. See [Assets and mobile performance](docs/assets-and-performance.md).
-
-## The Small Contract
-
-Every game should do this:
+Minimal game setup:
 
 ```ts
-import { playus } from '@playus';
+import {
+  createTapToStartOverlay,
+  nativeBridge,
+  sound,
+} from '@playus/games-sdk';
+import '@playus/games-sdk/styles.css';
 
-playus.configure({ gameId: 'your-game-id' });
+nativeBridge.configure({ gameId: 'your-game-id' });
 
-playus.game.ready();          // when required assets are loaded
-playus.game.started();        // when the run really starts
-playus.game.score(score);     // reasonable live leaderboard updates
-playus.game.finished(score);  // final exact score, exactly once
+createTapToStartOverlay({
+  text: {
+    en: 'Tap to start',
+    de: 'Tippen zum Starten',
+    fr: 'Touchez pour commencer',
+    es: 'Toca para empezar',
+    it: 'Tocca per iniziare',
+  },
+  mode: 'dismiss-only',
+  onStart: () => {
+    nativeBridge.game.started();
+    nativeBridge.game.score(0);
+  },
+});
+
+await sound.preload(['positive-input']);
+nativeBridge.game.ready();
 ```
 
-If setup fails:
+When the run ends:
 
 ```ts
-playus.game.error({ code: 'INIT_FAILED', message: 'Could not load level.' });
+nativeBridge.game.finished(finalScore);
 ```
-
-Do not build your own result screen, upload flow, leaderboard, login, localization system, language switcher, host audio controls, or Playus host integration.
 
 ## Examples
 
-- `games/starter-game`: smallest copyable TypeScript starter.
-- `games/phaser-example`: Phaser with a small generated target.
-- `games/babylon-example`: Babylon.js with a clickable rotating cube.
+- `games/starter-game`: plain TypeScript starter.
+- `games/phaser-example`: Phaser setup using `@playus/games-sdk/phaser`.
+- `games/babylon-example`: Babylon.js setup using `@playus/games-sdk/babylon`.
+
+## Delivering A Bundle
+
+Playus expects a static web bundle:
+
+```txt
+dist/
+  index.html
+  assets/...
+```
+
+The bundle must:
+
+- run from a static host path with no backend required
+- use relative asset URLs or bundled imports
+- include the Playus SDK in the compiled output
+- call `ready()` only after required assets for the first playable frame are loaded
+- send meaningful live `score()` updates
+- call `finished(finalScore)` exactly once
+- support `lang` from the URL hash for in-game text and overlays
+
+Playus handles signing, hosting, game metadata, score type assignment, leaderboard UI, and final result UI.
 
 ## Docs
 

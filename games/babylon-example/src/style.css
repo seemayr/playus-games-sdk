@@ -1,13 +1,4 @@
-.babylon-game canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  outline: none;
-}
-
-.babylon-game .score {
+#game-viewport .score {
   position: absolute;
   z-index: 2;
   top: 7vh;

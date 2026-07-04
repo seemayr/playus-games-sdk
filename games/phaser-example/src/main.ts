@@ -3,19 +3,28 @@ import {
   createSeededRandom,
   createTapToStartOverlay,
   getGameSeed,
-  playus,
+  nativeBridge,
   seededBetween,
   sound,
-} from '@playus';
-import '@playus/styles.css';
+} from '@playus/games-sdk';
+import {
+  BASE_PHASER_CONFIG,
+  BASE_VIEWPORT_HEIGHT,
+  BASE_VIEWPORT_WIDTH,
+  createPhaserParent,
+  getPhaserBackgroundConfig,
+} from '@playus/games-sdk/phaser';
+import '@playus/games-sdk/styles.css';
 import './style.css';
 
 const GAME_ID = 'phaser-example';
 const TARGET_SCORE = 5;
 
-playus.configure({ gameId: GAME_ID });
+nativeBridge.configure({ gameId: GAME_ID });
 
 const random = createSeededRandom(getGameSeed());
+const background = { transparent: false, color: '#172027' } as const;
+const parent = createPhaserParent({ background });
 
 class MainScene extends Phaser.Scene {
   private target!: Phaser.GameObjects.Arc;
@@ -46,21 +55,27 @@ class MainScene extends Phaser.Scene {
     this.target.setPosition(width / 2, height / 2);
 
     createTapToStartOverlay({
-      text: 'Tap to start',
+      text: {
+        en: 'Tap the target',
+        de: 'Tippe das Ziel',
+        fr: 'Touchez la cible',
+        es: 'Toca el objetivo',
+        it: 'Tocca il bersaglio',
+      },
       mode: 'dismiss-only',
       onStart: () => this.startGame(),
     });
 
     sound.preload(['positive-input', 'level-complete']);
-    playus.game.ready();
+    nativeBridge.game.ready();
   }
 
   private startGame() {
     if (this.hasStarted || this.hasFinished) return;
 
     this.hasStarted = true;
-    playus.game.started();
-    playus.game.score(this.score);
+    nativeBridge.game.started();
+    nativeBridge.game.score(this.score);
   }
 
   private hitTarget() {
@@ -68,8 +83,8 @@ class MainScene extends Phaser.Scene {
 
     this.score += 1;
     this.scoreText.setText(String(this.score));
-    playus.game.score(this.score);
-    playus.device.haptic('tap');
+    nativeBridge.game.score(this.score);
+    nativeBridge.device.haptic('tap');
     sound.play('positive-input', { volume: 0.55 });
 
     if (this.score >= TARGET_SCORE) {
@@ -90,21 +105,20 @@ class MainScene extends Phaser.Scene {
     if (this.hasFinished) return;
 
     this.hasFinished = true;
-    playus.device.haptic('success');
+    nativeBridge.device.haptic('success');
     sound.play('level-complete', { volume: 0.7 });
-    playus.game.finished(this.score);
+    nativeBridge.game.finished(this.score);
   }
 }
 
 new Phaser.Game({
-  type: Phaser.AUTO,
-  parent: 'game',
-  width: window.innerWidth,
-  height: window.innerHeight,
-  backgroundColor: '#172027',
+  ...BASE_PHASER_CONFIG,
+  ...getPhaserBackgroundConfig(background),
   scale: {
-    mode: Phaser.Scale.RESIZE,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
+    ...BASE_PHASER_CONFIG.scale,
+    parent,
+    width: BASE_VIEWPORT_WIDTH,
+    height: BASE_VIEWPORT_HEIGHT,
   },
   scene: MainScene,
 });

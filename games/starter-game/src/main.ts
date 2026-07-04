@@ -2,17 +2,17 @@ import {
   createSeededRandom,
   createTapToStartOverlay,
   getGameSeed,
-  playus,
+  nativeBridge,
   seededBetween,
   sound,
-} from '@playus';
-import '@playus/styles.css';
+} from '@playus/games-sdk';
+import '@playus/games-sdk/styles.css';
 import './style.css';
 
 const GAME_ID = 'starter-game';
 const TARGET_SCORE = 5;
 
-playus.configure({ gameId: GAME_ID });
+nativeBridge.configure({ gameId: GAME_ID });
 
 const random = createSeededRandom(getGameSeed());
 let score = 0;
@@ -34,20 +34,26 @@ positionTarget();
 targetButton.addEventListener('pointerdown', handleTargetTap);
 
 createTapToStartOverlay({
-  text: 'Tap to start',
+  text: {
+    en: 'Tap the targets',
+    de: 'Tippe die Ziele',
+    fr: 'Touchez les cibles',
+    es: 'Toca los objetivos',
+    it: 'Tocca i bersagli',
+  },
   mode: 'dismiss-only',
   onStart: startGame,
 });
 
 sound.preload(['positive-input', 'level-complete']);
-playus.game.ready();
+nativeBridge.game.ready();
 
 function startGame() {
   if (hasStarted || hasFinished) return;
 
   hasStarted = true;
-  playus.game.started();
-  playus.game.score(score);
+  nativeBridge.game.started();
+  nativeBridge.game.score(score);
 }
 
 function handleTargetTap() {
@@ -57,8 +63,8 @@ function handleTargetTap() {
   target = createTarget();
   positionTarget();
   scoreElement.textContent = String(score);
-  playus.game.score(score);
-  playus.device.haptic('tap');
+  nativeBridge.game.score(score);
+  nativeBridge.device.haptic('tap');
   sound.play('positive-input', { volume: 0.5 });
 
   if (score >= TARGET_SCORE) {
@@ -71,8 +77,8 @@ function finishGame() {
 
   hasFinished = true;
   sound.play('level-complete', { volume: 0.7 });
-  playus.device.haptic('success');
-  playus.game.finished(score);
+  nativeBridge.device.haptic('success');
+  nativeBridge.game.finished(score);
 }
 
 function createTarget() {

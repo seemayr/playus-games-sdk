@@ -27,72 +27,126 @@ export type SoundPlayOptions = {
   volume?: number;
 };
 
-let audioContext: AudioContext | null = null;
-const PARENT_EVENT_SOURCE = 'playus-devkit-game-event';
+class SoundManager {
+  private static readonly CDN_BASE = 'https://pub-f2838cca4376431f9c696446d4a3e503.r2.dev';
 
-function getAudioContext(): AudioContext | null {
-  if (!audioContext) {
-    const AudioContextCtor = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextCtor) return null;
-    audioContext = new AudioContextCtor();
+  private audioContext: AudioContext | null = null;
+  private buffers: Map<SoundId, AudioBuffer> = new Map();
+  private loading: Map<SoundId, Promise<AudioBuffer | null>> = new Map();
+  private enabled = true;
+
+  unlock(): void {
+    this.getContext();
   }
 
-  if (audioContext.state === 'suspended') {
-    audioContext.resume().catch(() => {});
+  async preload(ids: SoundId | SoundId[]): Promise<void> {
+    const idArray = Array.isArray(ids) ? ids : [ids];
+    await Promise.all(idArray.map((id) => this.loadSound(id)));
   }
 
-  return audioContext;
-}
+  play(id: SoundId, options: SoundPlayOptions = {}): void {
+    if (!this.enabled) return;
 
-function frequencyForSound(id: SoundId): number {
-  if (id.includes('negative') || id.includes('warning') || id.includes('down')) return 180;
-  if (id.includes('level') || id.includes('success') || id.includes('up')) return 640;
-  if (id.startsWith('piano')) return 260 + Number(id.slice(-1)) * 80;
-  return 420;
-}
-
-function postSoundEvent(soundId: SoundId, volume: number) {
-  const event = {
-    source: PARENT_EVENT_SOURCE,
-    type: 'sound',
-    soundId,
-    volume,
-    timestamp: Date.now(),
-  };
-
-  if (window.parent && window.parent !== window) {
-    window.parent.postMessage(event, '*');
-    return;
-  }
-
-  console.log('Playus sound event:', event);
-}
-
-class DevkitSound {
-  async preload(_ids: SoundId | SoundId[]): Promise<void> {
-    return Promise.resolve();
-  }
-
-  play(id: SoundId, options: SoundPlayOptions = {}) {
-    postSoundEvent(id, options.volume ?? 1);
-
-    const context = getAudioContext();
+    const context = this.getContext();
     if (!context) return;
 
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    const volume = Math.max(0, Math.min(1, options.volume ?? 0.22));
+    this.loadSound(id).then((buffer) => {
+      if (!buffer || !this.audioContext) return;
 
-    oscillator.type = 'sine';
-    oscillator.frequency.value = frequencyForSound(id);
-    gain.gain.setValueAtTime(volume, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.08);
+      try {
+        const source = this.audioContext.createBufferSource();
+        source.buffer = buffer;
 
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.09);
+        if (options.volume !== undefined && options.volume !== 1) {
+          const gainNode = this.audioContext.createGain();
+          gainNode.gain.value = Math.max(0, Math.min(1, options.volume));
+          source.connect(gainNode);
+          gainNode.connect(this.audioContext.destination);
+        } else {
+          source.connect(this.audioContext.destination);
+        }
+
+        source.start(0);
+      } catch (error) {
+        console.warn(`SoundManager: Failed to play ${id}:`, error);
+      }
+    });
+  }
+
+  setEnabled(enabled: boolean): void {
+    this.enabled = enabled;
+  }
+
+  isEnabled(): boolean {
+    return this.enabled;
+  }
+
+  dispose(): void {
+    if (this.audioContext) {
+      this.audioContext.close().catch(() => {});
+      this.audioContext = null;
+    }
+
+    this.buffers.clear();
+    this.loading.clear();
+  }
+
+  private getContext(): AudioContext | null {
+    if (!this.audioContext) {
+      try {
+        const AudioContextCtor = window.AudioContext || (window as any).webkitAudioContext;
+        this.audioContext = new AudioContextCtor();
+      } catch {
+        console.warn('SoundManager: Web Audio API not supported');
+        return null;
+      }
+    }
+
+    if (this.audioContext.state === 'suspended') {
+      this.audioContext.resume().catch(() => {});
+    }
+
+    return this.audioContext;
+  }
+
+  private async loadSound(id: SoundId): Promise<AudioBuffer | null> {
+    if (this.buffers.has(id)) return this.buffers.get(id)!;
+    if (this.loading.has(id)) return this.loading.get(id)!;
+
+    const context = this.getContext();
+    if (!context) return null;
+
+    const loadPromise = this.fetchAndDecodeSound(context, id);
+    this.loading.set(id, loadPromise);
+
+    return loadPromise.finally(() => this.loading.delete(id));
+  }
+
+  private async fetchAndDecodeSound(context: AudioContext, id: SoundId): Promise<AudioBuffer | null> {
+    const filename = `${id}.mp3`;
+    const urls = [
+      `native://sounds/${filename}`,
+      `/__native__/sounds/${filename}`,
+      `${SoundManager.CDN_BASE}/sounds/${filename}`,
+    ];
+
+    for (const url of urls) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) continue;
+
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await context.decodeAudioData(arrayBuffer);
+        this.buffers.set(id, audioBuffer);
+        return audioBuffer;
+      } catch {
+        continue;
+      }
+    }
+
+    console.warn(`SoundManager: Could not load ${id}`);
+    return null;
   }
 }
 
-export const sound = new DevkitSound();
+export const sound = new SoundManager();

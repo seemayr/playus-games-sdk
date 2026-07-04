@@ -1,9 +1,3 @@
-#game {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-}
-
-#game canvas {
+#phaser-parent canvas {
   display: block;
 }

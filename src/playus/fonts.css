@@ -1,0 +1,29 @@
+@font-face {
+  font-family: "Unbounded";
+  src: url("native://fonts/Unbounded.woff2") format("woff2"),
+       url("native://fonts/Unbounded.ttf") format("truetype"),
+       url("https://pub-f2838cca4376431f9c696446d4a3e503.r2.dev/fonts/Unbounded.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("native://fonts/SpaceGrotesk.woff2") format("woff2"),
+       url("native://fonts/SpaceGrotesk.ttf") format("truetype"),
+       url("https://pub-f2838cca4376431f9c696446d4a3e503.r2.dev/fonts/SpaceGrotesk.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Quicksand";
+  src: url("native://fonts/Quicksand.woff2") format("woff2"),
+       url("native://fonts/Quicksand.ttf") format("truetype"),
+       url("https://pub-f2838cca4376431f9c696446d4a3e503.r2.dev/fonts/Quicksand.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+}

@@ -263,7 +263,7 @@ Use the SDK containers instead of building your own root layout:
 
 - Phaser: `createPhaserParent`, `BASE_PHASER_CONFIG`, `getPhaserBackgroundConfig` from `@playus.club/games-sdk/phaser`.
 - Babylon: `createCanvas`, `getEngineOptions`, `getClearColor` from `@playus.club/games-sdk/babylon`.
-- Three / custom WebGL: `createThreeCanvas`, `getThreeRendererOptions` from `@playus.club/games-sdk/three`.
+- Three.js / custom WebGL: `createThreeCanvas`, `getThreeRendererOptions` from `@playus.club/games-sdk/three`.
 - Plain DOM/canvas: import `@playus.club/games-sdk/styles.css` and build inside a fixed-position root (see the starter example).
 
 Backgrounds use one shared config:

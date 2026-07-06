@@ -207,7 +207,7 @@ export class BridgeEmulator {
         timestamp: Date.now(),
         payload: { ...payload, error: result.error ?? 'unknown' },
         warning: result.error === 'host_ready_cross_origin_blocked'
-          ? 'hostReady cannot reach a cross-origin game URL. Handshake checks are skipped — copy your built bundle into public/<game-id>/ and load /<game-id>/ to test the full flow.'
+          ? 'hostReady cannot reach a cross-origin game URL. Handshake checks are skipped — copy your built bundle into public/<game-id>/ and load /<game-id>/index.html to test the full flow.'
           : result.error ?? 'hostReady failed.',
       });
     }

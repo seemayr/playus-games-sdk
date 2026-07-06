@@ -91,7 +91,7 @@ Three small complete games. All follow the full [game contract](docs/game-contra
 The simulator's full handshake only works same-origin. To test your built bundle:
 
 1. Copy your build output into `public/<your-game-id>/` in this repo.
-2. Run `npm run dev` and enter `/<your-game-id>/` as the Game URL in the simulator.
+2. Run `npm run dev` and enter `/<your-game-id>/index.html` as the Game URL in the simulator (the explicit `index.html` matters — without it the dev server serves the simulator page instead).
 
 Cross-origin URLs (e.g. your own dev server) still show outgoing events, but `hostReady` cannot be delivered — the simulator marks this and skips handshake checks.
 

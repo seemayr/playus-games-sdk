@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.6
+
+- Canvas 2D: added `observeCanvasSize()` to keep the backing store, capped device pixel ratio, and game projection synchronized with the actual container size in embedded WebViews.
+- Phaser: added `observePhaserParentResize()` so the Scale Manager refreshes after element-only native host layout changes and cleans up with the game lifecycle.
+
 ## 0.1.5
 
 - Tap-to-start (`dismiss-only`): the starting tap no longer leaks into the game on iOS. WebKit re-dispatches the tap's touch and compatibility mouse events to the exposed canvas after the overlay hides itself, which games counted as a first (wrong) input; the overlay now swallows the rest of the starting gesture.

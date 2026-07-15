@@ -269,10 +269,45 @@ Games run in a fixed portrait viewport clipped by the host. All UI must fit insi
 
 Use the SDK containers instead of building your own root layout:
 
-- Phaser: `createPhaserParent`, `BASE_PHASER_CONFIG`, `getPhaserBackgroundConfig` from `@playus.club/games-sdk/phaser`.
+- Phaser: `createPhaserParent`, `BASE_PHASER_CONFIG`, `getPhaserBackgroundConfig`, `observePhaserParentResize` from `@playus.club/games-sdk/phaser`.
 - Babylon: `createCanvas`, `getEngineOptions`, `getClearColor` from `@playus.club/games-sdk/babylon`.
 - Three.js / custom WebGL: `createThreeCanvas`, `getThreeRendererOptions` from `@playus.club/games-sdk/three`.
 - Plain DOM/canvas: import `@playus.club/games-sdk/styles.css` and build inside a fixed-position root (see the starter example).
+
+Phaser games should observe the actual parent element because an embedded WebView can resize it without emitting a reliable `window.resize` event:
+
+```ts
+const parent = createPhaserParent();
+const game = new Phaser.Game({
+  ...BASE_PHASER_CONFIG,
+  scale: { ...BASE_PHASER_CONFIG.scale, parent },
+  scene: MainScene,
+});
+
+observePhaserParentResize(game, parent);
+```
+
+The helper refreshes Phaser's Scale Manager after parent size changes and disconnects automatically when the game is destroyed. It also returns a cleanup function for games that replace the parent before destroying the Phaser instance. Keep gameplay in the fixed virtual coordinates from `BASE_PHASER_CONFIG`; viewport or device-pixel changes must affect presentation, not difficulty or scoring.
+
+For plain Canvas 2D games, observe the actual game container instead of relying only on `window.resize`. The helper sets the canvas backing store before calling `onResize`; `width` and `height` are CSS pixels and `devicePixelRatio` is capped at `2` by default:
+
+```ts
+import { observeCanvasSize } from '@playus.club/games-sdk';
+
+const stopObservingCanvas = observeCanvasSize({
+  canvas,
+  container: gameRoot,
+  onResize: ({ width, height, devicePixelRatio }) => {
+    context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    resizeWorld(width, height);
+  },
+});
+
+// Call stopObservingCanvas() when the game is torn down.
+```
+
+Keep the canvas at `width: 100%; height: 100%` in CSS. Pass `maxDevicePixelRatio` when a game needs a lower or higher cap.
+Transient zero-sized layout states are ignored until the container has usable bounds.
 
 Backgrounds use one shared config:
 

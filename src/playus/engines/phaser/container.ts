@@ -107,6 +107,50 @@ export function createPhaserParent(options?: PhaserParentOptions): HTMLElement {
   return viewport;
 }
 
+/**
+ * Keeps Phaser's Scale Manager in sync when its parent element changes size.
+ * Element resizes do not always emit a window resize event in embedded WebViews.
+ *
+ * The observer disconnects automatically when the game is destroyed. The returned
+ * cleanup function is useful when the parent is replaced before the game itself.
+ */
+export function observePhaserParentResize(game: Phaser.Game, parent: HTMLElement): () => void {
+  let animationFrame: number | undefined;
+  let isStopped = false;
+
+  const refresh = () => {
+    if (isStopped || animationFrame !== undefined) return;
+
+    animationFrame = window.requestAnimationFrame(() => {
+      animationFrame = undefined;
+      if (!isStopped) game.scale.refresh();
+    });
+  };
+
+  const observer = typeof ResizeObserver === 'undefined'
+    ? undefined
+    : new ResizeObserver(refresh);
+  observer?.observe(parent);
+  window.addEventListener('resize', refresh);
+
+  const cleanup = () => {
+    if (isStopped) return;
+    isStopped = true;
+    observer?.disconnect();
+    window.removeEventListener('resize', refresh);
+    game.events.off(Phaser.Core.Events.DESTROY, cleanup);
+
+    if (animationFrame !== undefined) {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = undefined;
+    }
+  };
+
+  game.events.once(Phaser.Core.Events.DESTROY, cleanup);
+  refresh();
+  return cleanup;
+}
+
 export function isOutOfBounds(entity: Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.GetBounds) {
   const { width, height } = entity.scene.scale;
   const b = entity.getBounds();

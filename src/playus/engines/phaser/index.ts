@@ -5,5 +5,6 @@ export {
   createPhaserParent,
   getPhaserBackgroundConfig,
   isOutOfBounds,
+  observePhaserParentResize,
 } from './container';
 export type { PhaserParentOptions } from './container';

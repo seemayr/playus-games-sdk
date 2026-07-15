@@ -7,6 +7,8 @@ export {
 export { createSeededRandom, seededBetween, seededFloatBetween, seededShuffle } from './random';
 export { getGameSeed, getUrlParam } from './url-params';
 export { clampGameplayDeltaMs, clampGameplayDeltaSeconds } from './timing';
+export { observeCanvasSize } from './canvas';
+export type { CanvasSize, ObserveCanvasSizeOptions } from './canvas';
 export { createTranslator, getCurrentLanguage } from './i18n';
 export type { Language, TranslationDict } from './i18n';
 export { createTapToStartOverlay } from './overlay/tap-to-start';

@@ -1,7 +1,8 @@
 // Playus Phaser example: pop as many rising bubbles as you can in 20 seconds.
 // Demonstrates: points score with live updates, a seeded spawn pattern shared by
 // every try (includePlayContext: false), gameplay delta clamping, countdown with
-// clock formatting and a warning sound, createTranslator, tap-rapid touch hint.
+// clock formatting and a warning sound, responsive parent resizing,
+// createTranslator, tap-rapid touch hint.
 import Phaser from 'phaser';
 import {
   clampGameplayDeltaMs,
@@ -21,6 +22,7 @@ import {
   BASE_VIEWPORT_WIDTH,
   createPhaserParent,
   getPhaserBackgroundConfig,
+  observePhaserParentResize,
 } from '@playus.club/games-sdk/phaser';
 import '@playus.club/games-sdk/styles.css';
 import './style.css';
@@ -173,7 +175,7 @@ class MainScene extends Phaser.Scene {
   }
 }
 
-new Phaser.Game({
+const game = new Phaser.Game({
   ...BASE_PHASER_CONFIG,
   ...getPhaserBackgroundConfig(background),
   scale: {
@@ -184,3 +186,5 @@ new Phaser.Game({
   },
   scene: MainScene,
 });
+
+observePhaserParentResize(game, parent);

@@ -27,6 +27,7 @@ Content and fairness:
 - Required assets are bundled locally; no runtime fetches from external services.
 - Gameplay-affecting randomness uses seeded random.
 - Gameplay speed is based on elapsed time (clamped deltas), not frame count.
+- Canvas backing stores and gameplay projection update when their actual container changes size.
 - In-game text and start overlays support `en`, `de`, `fr`, `es`, and `it`.
 - Host mute state is respected: SDK sounds and `playUrl` handle it automatically; own audio engines subscribe via `sound.onEnabledChange`.
 - The framework/runtime is lean enough for mobile WebViews.

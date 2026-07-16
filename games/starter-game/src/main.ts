@@ -1,7 +1,7 @@
 // Playus starter example (plain TypeScript/DOM).
 // Demonstrates: lower-is-better time score (live whole seconds negative, exact
 // fractional final), score(0) right after started(), per-try seeded layout,
-// dismiss-only start overlay with the default tap hint, sounds, and haptics.
+// dismiss-only start overlay with a tap-sides hint, sounds, and haptics.
 import {
   createSeededRandom,
   createTapToStartOverlay,
@@ -50,6 +50,7 @@ createTapToStartOverlay({
     it: 'Colpisci 5 bersagli il più velocemente possibile',
   },
   mode: 'dismiss-only',
+  touchHint: 'tap-sides',
   onStart: startGame,
 });
 

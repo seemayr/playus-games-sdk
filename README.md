@@ -91,7 +91,7 @@ Four small complete games. All follow the full [game contract](docs/game-contrac
 | Game | Hit 5 targets fast | Pop bubbles for 20s | Tap the odd cube, endless levels | Tap the cube only when it turns green |
 | Score | Time: negative seconds, `score(0)` at start, whole-second live updates, exact fractional final | Points with live updates | Levels with an endless difficulty ramp | Points, endless shrinking-window ramp |
 | Seeded random | New layout per try | Same pattern every try (`includePlayContext: false`) | `seededShuffle` + float ranges | Seeded per-try reaction rhythm |
-| Start overlay | `dismiss-only`, default tap hint | `dismiss-only`, `tap-rapid` hint | `pass-first-input`, board visible behind hint | `dismiss-only`, `tap` hint |
+| Start overlay | `dismiss-only`, `tap-sides` hint | `dismiss-only`, `tap-rapid` hint | `dismiss-only`, `tap` hint | `dismiss-only`, `tap-timed` hint |
 | Also shows | Real-time score timer (no clamping) | Delta clamping, parent resize handling, countdown clock, warning sound | Transparent background, debug overlay, DPR cap, brief end feedback, `error()` | Solid background + `setClearColor`, raycaster picking, DPR cap, resize, delta clamping |
 
 ## Testing Your Own Bundle

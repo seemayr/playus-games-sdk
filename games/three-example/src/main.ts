@@ -102,7 +102,7 @@ try {
   createTapToStartOverlay({
     text: t('hint'),
     mode: 'dismiss-only',
-    touchHint: 'tap',
+    touchHint: 'tap-timed',
     onStart: startGame,
   });
 

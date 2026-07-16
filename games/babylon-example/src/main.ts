@@ -1,8 +1,8 @@
 // Playus Babylon example: 3x3 cube grid, tap the one with the different color.
 // Each level the difference shrinks — an endless ramp toward an impossible
 // ceiling. One wrong tap ends the run after briefly revealing the odd cube.
-// Demonstrates: levels score, pass-first-input overlay (board visible behind
-// the hint, first tap already picks), seededShuffle + seededFloatBetween,
+// Demonstrates: levels score, dismiss-only overlay with a tap hint,
+// seededShuffle + seededFloatBetween,
 // transparent background, DPR cap, debug overlay, delta clamping, error().
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { Scene } from '@babylonjs/core/scene';
@@ -115,10 +115,8 @@ try {
 
   createTapToStartOverlay({
     text: t('hint'),
-    // The board is visible behind the hint and the dismissing tap already
-    // picks a cube — first input counts.
-    mode: 'pass-first-input',
-    touchHint: false,
+    mode: 'dismiss-only',
+    touchHint: 'tap',
     onStart: () => {
       if (hasStarted || isGameOver) return;
       hasStarted = true;

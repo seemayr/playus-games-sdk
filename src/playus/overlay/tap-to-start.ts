@@ -44,8 +44,8 @@ export function createTapToStartOverlay(options: TapToStartOptions): TapToStartO
   if (options.touchHint !== false) {
     touchHint = createTouchHint(options.touchHint ?? 'tap', root, '#ffffff', {
       top: '64%',
-      width: '24%',
     });
+    touchHint.show();
   }
 
   function handlePointerDown(event: PointerEvent) {

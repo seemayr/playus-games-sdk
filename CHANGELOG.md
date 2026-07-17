@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.8
+
+- Added `refreshOnFontsLoaded()`: loads the shared web fonts explicitly via `document.fonts.load()` and re-invokes a redraw callback once they are usable, so canvas text (Phaser/Babylon/Three) picks up the real font instead of staying on the fallback. Replaces the per-game `document.fonts.ready`/`loadingdone` pattern, which never triggers the download itself and can fire before the font was even requested.
+
 ## 0.1.6
 
 - Canvas 2D: added `observeCanvasSize()` to keep the backing store, capped device pixel ratio, and game projection synchronized with the actual container size in embedded WebViews.

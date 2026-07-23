@@ -34,7 +34,25 @@ export type SoundPlayOptions = {
   semitones?: number;
 };
 
+type NavigatorAudioSession = {
+  type: 'transient';
+};
+
 const CDN_BASE = 'https://pub-f2838cca4376431f9c696446d4a3e503.r2.dev';
+
+function configureTransientAudioSession(): void {
+  const audioSession = (
+    navigator as Navigator & { audioSession?: NavigatorAudioSession }
+  ).audioSession;
+
+  if (!audioSession) return;
+
+  try {
+    audioSession.type = 'transient';
+  } catch (error) {
+    console.warn('SoundManager: Could not configure transient audio session:', error);
+  }
+}
 
 function sharedSoundUrls(id: SoundId): string[] {
   const filename = `${id}.mp3`;
@@ -51,6 +69,10 @@ class SoundManager {
   private loading: Map<string, Promise<AudioBuffer | null>> = new Map();
   private enabled = true;
   private enabledListeners: Array<(enabled: boolean) => void> = [];
+
+  constructor() {
+    configureTransientAudioSession();
+  }
 
   async preload(ids: SoundId | SoundId[]): Promise<void> {
     const idArray = Array.isArray(ids) ? ids : [ids];

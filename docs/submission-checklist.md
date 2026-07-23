@@ -25,6 +25,8 @@ Scoring:
 Content and fairness:
 
 - Required assets are bundled locally; no runtime fetches from external services.
+- Runtime image formats were chosen by measurement; transparent PNG assets were compared with lossless WebP.
+- Intentionally mirrored directional sprites reuse one frame unless a direction-specific detail requires separate art.
 - Gameplay-affecting randomness uses seeded random.
 - Gameplay speed is based on elapsed time (clamped deltas), not frame count.
 - Canvas backing stores and gameplay projection update when their actual container changes size.
@@ -35,6 +37,9 @@ Content and fairness:
 Bundle:
 
 - The built `index.html` references assets relatively (`./assets/...`) — with Vite, `base: './'` is set.
+- `dist` contains no unused originals, duplicate optimized assets, or unintended source maps.
+- The uncompressed `dist` size and final ZIP size were measured and recorded.
+- The ZIP contains the contents of `dist` at its root, with `index.html` at the ZIP root.
 - The production build works in the local host simulator (served from `public/<game-id>/`).
 
 Bundle delivery should include:
@@ -45,4 +50,5 @@ Bundle delivery should include:
 - game name and short description translations
 - score direction and score type notes
 - expected average playtime
+- uncompressed production-build size and final delivery-ZIP size
 - any framework/runtime notes, including seeded-random exceptions

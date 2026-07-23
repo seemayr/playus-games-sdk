@@ -206,7 +206,10 @@ There are no native pause/resume callbacks. Use browser signals like `visibility
 
 ## Sounds
 
-Play all audio through the SDK sound manager — it handles the host mute state and the lazy AudioContext.
+Play all audio through the SDK sound manager — it handles the host mute state,
+the lazy AudioContext, and configures supported browsers to treat the page's
+audio session as `transient`. Short game effects therefore mix with music from
+other apps instead of taking over media playback.
 
 Shared Playus sounds load from the native app (with a CDN fallback in the browser):
 

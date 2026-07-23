@@ -18,6 +18,7 @@ Do not import a partner app shell as-is. The Playus port should keep the core ga
 The final game should:
 
 - Run as one short portrait WebView game.
+- Target the Playus compatibility baseline: iOS 18 or newer plus the supported Android WebViews.
 - Use `@playus.club/games-sdk` for bridge, overlays, localization, sounds, haptics, timing, seeded random, and engine helpers.
 - Call `ready({ version })`, `started()`, meaningful live `score()` updates, and exactly one `finished(finalScore)`.
 - Avoid custom start screens, game-over screens, restart buttons, highscore panels, settings, menus, analytics, and persistent browser storage.
@@ -156,6 +157,9 @@ The game only sends numeric values through the bridge. The Playus system assigns
 Prefer:
 
 - Imported local assets.
+- Lossless WebP for transparent sprites and UI art when it is smaller than PNG.
+- Lossy WebP around quality 80–90 for detailed backgrounds when visual comparison confirms the result.
+- One directional sprite plus a runtime mirror when left and right are intentionally identical.
 - Small generated textures.
 - Procedural fallback geometry when it avoids shipping or fetching heavy models.
 - Locally bundled game-specific fonts when they materially support the game's visual identity or readability.
@@ -167,11 +171,15 @@ Avoid:
 
 - Runtime asset fetches.
 - Remote font CSS or externally hosted models required for the first playable frame.
+- Shipping PNG masters alongside equivalent optimized WebP runtime assets.
+- Duplicate mirrored frames without a direction-specific visual reason.
 - Large texture sets.
 - Background soundtracks or long ambient loops.
 - Custom audio engines for generic click, success, or fail sounds that SDK sounds already cover.
 
 Use `@playus.club/games-sdk/styles.css` when using SDK overlays or Playus fonts.
+
+WebP supports transparency and requires no SDK-specific integration. The iOS 18 minimum means WebP does not require an iOS PNG fallback. Import it like any other local asset and verify the production build in the host simulator and on supported Android devices. Prefer lossless WebP for crisp transparent artwork; use lossy compression only after checking the asset at its actual in-game size.
 
 When working from a clone of the SDK repository, listen to the shared sound previews in `dev-assets/sounds/games/`. Those files are reference assets only and are not shipped in the npm package.
 
@@ -228,6 +236,8 @@ Review:
 After implementation:
 
 - Build a static production bundle with relative asset paths. With Vite, set `base: './'`.
+- Inspect `dist` for unused originals, duplicate variants, accidental source maps, and unexpectedly large files.
+- Measure and record both the uncompressed `dist` size and the ZIP made from the contents of `dist`.
 - Test the production bundle in the local Playus host simulator, served from `public/<game-id>/`.
 - Verify the host simulator receives `hostReadyAck`.
 - Verify `ready`, `started`, live `score`, and `finished` arrive in the expected order.
@@ -244,4 +254,5 @@ Bundle delivery should include:
 - Score direction and score type notes.
 - Expected average playtime.
 - Framework/runtime notes, including seeded-random exceptions.
+- Uncompressed production-build size and final delivery-ZIP size.
 - Any important porting decisions, such as first-input mode, custom audio, bundled fonts, or intentionally fixed-format layout.

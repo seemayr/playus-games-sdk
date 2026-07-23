@@ -1,6 +1,6 @@
 # Assets And Mobile Performance
 
-Playus loads games inside a native Android/iOS app through a WebView. Some supported Android devices can be old or slow, so startup time, bundle size, memory use, and frame stability matter.
+Playus loads games inside a native Android/iOS app through a WebView. The Playus iOS app requires iOS 18 or newer. Some supported Android devices can be old or slow, so startup time, bundle size, memory use, and frame stability matter.
 
 ## Assets
 
@@ -28,9 +28,35 @@ create() {
 
 For Babylon.js, load required 3D assets before `ready()`. If you only need simple 3D shapes, prefer generated meshes like `MeshBuilder.CreateBox(...)`.
 
+### Choose Image Formats Intentionally
+
+Use the smallest format that preserves the visual quality the game actually needs:
+
+| Asset | Good default | Notes |
+| --- | --- | --- |
+| Sprites, UI art, and textures with transparency | Lossless WebP | Preserves alpha like PNG and is often substantially smaller. |
+| Soft or detailed backgrounds | Lossy WebP around quality 80–90 | Check gradients, edges, and text at the final rendered size. |
+| Pixel art or assets that must remain pixel-exact | PNG or lossless WebP | Compare both; keep PNG when it is smaller or required by the toolchain. |
+| Simple shapes, markers, and icons | CSS, SVG, or generated canvas geometry | Avoid a bitmap when a small deterministic shape is enough. |
+| Photos already encoded efficiently | JPEG or lossy WebP | Convert only when the measured result is smaller at comparable quality. |
+
+WebP supports transparency and works with normal `<img>` elements, CSS backgrounds, Canvas, Phaser, and Vite asset imports. No Playus SDK-specific handling is required. Because Playus targets iOS 18 or newer, iOS does not need a PNG fallback for WebP assets. Continue testing the production build in the Playus host simulator and on supported Android devices; add a fallback only when an explicitly supported Android WebView requires one.
+
+Keep high-quality source files outside the shipped bundle when artists still need editable masters. The production `dist` should contain only the optimized runtime versions.
+
+Do not store two directional frames when one is intentionally just a mirror of the other. For example, a worker that looks identical facing left and right can ship one horizontal frame and use `scaleX(-1)` for the opposite direction. Keep separate frames when lighting, tools, text, handedness, or animation timing is direction-specific.
+
+Compression varies by artwork, so measure instead of assuming. In one production Playus game:
+
+- Three transparent PNG game assets totaled about `676 KB`; lossless WebP reduced them to about `381 KB`.
+- A `162 KB` JPEG background became a `55 KB` WebP at quality 85.
+- The complete production ZIP dropped from about `867 KB` to `474 KB`.
+
+These numbers are an example, not a required budget. Crisp flat art, noisy textures, alpha edges, and already compressed files can produce very different results.
+
 Keep assets small:
 
-- compressed images
+- optimized runtime images
 - reasonable texture sizes
 - GLB or glTF for 3D models
 - a small number of required assets
@@ -41,6 +67,30 @@ Avoid:
 - required network fetches
 - huge texture atlases for tiny games
 - assets copied from Playus internal projects
+
+### Measure The Built Bundle
+
+Measure the production output, not only the source asset directory. Vite includes imported assets in `dist`, while files copied through `public/` may be shipped even when the game never references them.
+
+For a Vite game:
+
+```sh
+npm run build
+du -sh dist
+find dist -type f -exec du -h {} + | sort -h
+(cd dist && zip -qr ../game.zip .)
+du -h game.zip
+```
+
+The ZIP should contain the contents of `dist` at its root, including `index.html`. Record both the uncompressed `dist` size and the final ZIP size in delivery notes. Vite's displayed gzip estimates are useful for JavaScript and CSS transfer size, but they are not a substitute for measuring the actual delivery ZIP.
+
+Before delivery, inspect `dist` for:
+
+- unused or superseded image variants
+- source images accidentally copied alongside optimized runtime versions
+- source maps that are not intended for delivery
+- duplicate fonts, audio, model files, or texture atlases
+- unexpectedly large individual files
 
 ## Frameworks
 
